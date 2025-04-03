@@ -1,0 +1,68 @@
+
+                if (cacheSize == 0)
+                {
+                    return requests.Length;
+                }
+
+                Dictionary<string, List<int>> occurrences = new Dictionary<string, List<int>>();
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    string req = requests[i];
+                    if (!occurrences.ContainsKey(req))
+                    {
+                        occurrences[req] = new List<int>();
+                    }
+                    occurrences[req].Add(i);
+                }
+
+                HashSet<string> cache = new HashSet<string>();
+                int misses = 0;
+
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    string req = requests[i];
+                    if (cache.Contains(req))
+                    {
+                        continue;
+                    }
+
+                    misses++;
+                    if (cache.Count < cacheSize)
+                    {
+                        cache.Add(req);
+                    }
+                    else
+                    {
+                        string evictElement = null;
+                        int farthestNextUse = -1;
+                        foreach (string element in cache)
+                        {
+                            List<int> indices = occurrences[element];
+                            int target = i + 1;
+                            int pos = indices.BinarySearch(target);
+                            if (pos < 0)
+                            {
+                                pos = ~pos;
+                            }
+                            int nextUse;
+                            if (pos < indices.Count)
+                            {
+                                nextUse = indices[pos];
+                            }
+                            else
+                            {
+                                nextUse = int.MaxValue;
+                            }
+                            if (nextUse > farthestNextUse)
+                            {
+                                farthestNextUse = nextUse;
+                                evictElement = element;
+                            }
+                        }
+                        cache.Remove(evictElement);
+                        cache.Add(req);
+                    }
+                }
+
+                return misses;
+        }
